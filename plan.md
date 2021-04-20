@@ -40,7 +40,7 @@ problem.format = ({q, a, name}) => ({question: `${name} has ${q[0]} apples and $
 In the above example, the `name` field won't be taken into account when checking duplicates, so the same question with two different names won't be considired different.
 ### `format()`
 Takes in the generated random object and outputs an object with structure:
-```json
+```javascript
 {
   "question": "", // String representation of question
   "answer": "", // String representation of answer
@@ -88,7 +88,7 @@ Below is a problem that would generate simple one-variable linear equations prob
 
 # History
 The history stores past problem data from different questions.
-```json
+```javascript
 {
   "id": {
     "YYYYMMDD": [
@@ -98,7 +98,7 @@ The history stores past problem data from different questions.
 }
 ```
 For example:
-```json
+```javascript
 {
   "factorq": {
     "20210415": [
