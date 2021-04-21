@@ -20,6 +20,7 @@ let problems = {
         This gives us ${q[1]} - ${q[0]} on the right-hand-side: ${a}.`
       }
     },
+    turnover: 200,
     documented: false,
     calculator: false
   },
@@ -42,6 +43,7 @@ let problems = {
         explanation: `${name}'s stock ${q[1] ? "increases" : "decreases"} in value by ${q[2]}% per year, so each year the price changes by a factor of ${multiplier}. Repeatedly multiplying by ${multiplier}, ${q[3]} times, is the same as taking ${multiplier} to the power of ${q[3]}, which is ${fmt.round(Math.pow(multiplier, q[3]), 3)}. Multiplying this by the initial amount gives us ${fmt.round(answer, 3)}.`
       }
     },
+    turnover: 1000,
     documented: false,
     calculator: true
   },
@@ -57,23 +59,33 @@ let problems = {
         question: `${q}`,
         answer: `${q}`
       }
-    }
+    },
+    turnover: 0,
+    documented: false,
+    calculator: false
   }
 };
 let problemHistory = {};
 
 let random = {
   names: {
-    male: ["Bill", "Bob", "Jebediah"],
-    female: ["Valentina", "Roxanne", "Virginia"]
+    male: ["Bill", "Bob", "Jebediah", "Mohamed", "Karim", "Habib", "Santiago", "Gabriel", "Jayden", "Liam", "Noah", "James", "Ali", "Omar", "Yusif", "Wei", "Jie", "Hao", "Arjun", "Reyansh", "Ayaan", "Ori", "Ahmad", "Haruki", "Riku", "Lucas", "Nathan", "Stefan", "Leonardo", "Francesco", "Alessandro", "Leo", "Jack", "Sergei", "Taika"],
+    female: ["Valentina", "Roxanne", "Lola", "Fatima", "Mariam", "Rowan", "Mariana", "Lucia", "Camila", "Olivia", "Charlotte", "Emma", "Leyla", "Zeynab", "Salma", "Jing", "Ying", "Yan", "Aadya", "Diya", "Saanvi", "Sarah", "Jana", "Honoka", "Akari", "Anna", "Sophia", "Yasmine", "Ginevra", "Beatrice", "Aurora", "Stella", "Lucy", "Anastasia", "Mia"]
   },
-  nouns: ["shoe", "car", "carpet", "jewel", "rocket", "microscope", "tambourine", "guitar", "envelope", "jetpack"],
+  nouns: ["shoe", "car", "carpet", "rocket", "microscope", "tambourine", "guitar", "envelope", "jetpack", "parachute", "donut", "fruit"],
   currencies: ["$", "€", "￡"],
   int(min, max) {
     return Math.floor((1 + max - min) * Math.random()) + min;
   },
   bool() {
     return Math.random() >= 0.5;
+  },
+  float(min, max, places) {
+    let result = Math.random() * (max - min) + min;
+    if (places === undefined) {
+      return result;
+    }
+    return fmt.round(result, places);
   },
   choice(arr) {
     return arr[Math.floor(arr.length * Math.random())];
@@ -96,10 +108,7 @@ let random = {
     return this.choice(this.currencies);
   },
   money(min, max) {
-    return this.int(min, max) + 0.01 * this.int(0, 99);
-  },
-  moneyString(min, max) {
-    return fmt.toNPlaces(this.money(min, max), 2);
+    return this.float(min, max, 2);
   }
 }
 let fmt = {
@@ -140,15 +149,15 @@ function logProblem(problem) {
 // Returns null if unable to create a unique problem not already in problemHistory
 function newProblem(id) {
   let data;
-  let count = 0;
-  do {
+  for (let count = 0; count < 200; count++) {
     data = problems[id].generate();
-    count++;
-  } while (!tryAddToHistory(id, data.q) && count < 200);
-  if (count == 200) {
-    return null;
+    if (tryAddToHistory(id, data.q)) {
+      return problems[id].format(data);
+    } else {
+      trimHistory(id);
+    }
   }
-  return problems[id].format(data);
+  return null;
 }
 
 // Returns true if successful, false if already in problemHistory
@@ -178,6 +187,24 @@ function tryAddToHistory(id, q) {
   // If no duplicates were found, go ahead and add it
   problemHistory[id][today].push(q);
   return true;
+}
+
+// Removes the oldest item from the specified id's history if the turnover has been reached
+function trimHistory(id) {
+  let sum = 0;
+  let oldest = new Date();
+  let date;
+  for (let dateString in problemHistory[id]) {
+    date = stringToDate(dateString)
+    if (date < oldest) {
+      oldest = date;
+    }
+    sum += problemHistory[id][dateString].length;
+  }
+  if (sum > problems[id].turnover) {
+    // shift() removes the first entry, which is the oldest since they are added with push()
+    problemHistory[id][dateToString(oldest)].shift();
+  }
 }
 
 // Removes all entries from problemHistory that are older than 3 weeks

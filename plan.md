@@ -52,6 +52,8 @@ Takes in the generated random object and outputs an object with structure:
 ```
 ### `turnover`
 An integer representing how many unique problems must be offered before past problems can be reused. This determines how many questions to store in history. If a problem can't generate unique results before the turnover has been reached, the student may be given recent problems anyway.
+
+`turnover` should be less than or equal to 80% of the number of possible variants of the problem's `q` data. In the example problem below, there are 21 possible values each of q[0] and q[1], meaning 21 * 21 + 441 possible variants. The turnover, 200, is less than 80% of this number. If the turnover is too high, the stochastic `newProblem()` function may take too long to execute if it struggles to produce a unique answer.
 ### `documented` (optional)
 Whether or not the problem has a help page at `/help/{id}.html`. Defaults to false.
 ### `calculator` (optional)
@@ -81,6 +83,7 @@ Below is a problem that would generate simple one-variable linear equations prob
       This gives us ${q[1]} - ${q[0]} on the right-hand-side: ${a}.`
     }
   },
+  turnover: 200,
   documented: false,
   calculator: false
 }
